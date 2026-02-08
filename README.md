@@ -2,6 +2,8 @@
 you need to add some things in visual studio for this file to even do its magic!
 go to project and download these in NuGet Packets
 It wont work if u dont download these :P
+
+
 Microsoft.Win32.Registry
 Opencvsharp4
 Opencvsharp4.Extenstions
