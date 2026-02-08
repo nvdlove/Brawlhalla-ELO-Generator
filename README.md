@@ -1,10 +1,10 @@
 # 🏆 Brawlhalla ELO Generator v1.0
 
-> A fast console-based tool that monitors **Brawlhalla** gameplay and helps you *break the rank* while queueing 🎮🔥
+> A fast console-based tool that monitors **Brawlhalla** gameplay and helps you *break the rank* while queueing 🔥
 
 ---
 
-## 🖥️ Screenshot
+
 
 <p align="center">
   <img src="screenshot.png" alt="Brawlhalla ELO Generator console preview" width="650">
@@ -89,4 +89,4 @@ Install **all** of the following:
 
 Break the rank.  
 Happy queueing.  
-GGs only. 🎮🔥
+GGs only.
