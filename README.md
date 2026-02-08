@@ -7,7 +7,7 @@
 ## 🖥️ Screenshot
 
 <p align="center">
-  <img src="screenshot.png" alt="Brawlhalla ELO Generator console preview" width="750">
+  <img src="screenshot.png" alt="Brawlhalla ELO Generator console preview" width="650">
   <br>
   <em>Live console output while monitoring matches</em>
 </p>
