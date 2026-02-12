@@ -617,7 +617,7 @@ namespace BrawlhallaAutomation
             this.KeyDown += Form1_KeyDown;
 
             // Initial log
-            Log("   Brawlhalla ELO Generator v1.0  nvd & pier    ");
+            Log(" Brawlhalla ELO Generator v1.0 nvd & antireplay");
             Log("================================================");
             Log("                    CONFIG");
             Log($"   • Threshold: {MATCH_THRESHOLD * 100}%");
