@@ -617,14 +617,14 @@ namespace BrawlhallaAutomation
             this.KeyDown += Form1_KeyDown;
 
             // Initial log
-            Log(" Brawlhalla ELO Generator v1.0 nvd & antireplay");
-            Log("================================================");
+            Log("  Brawlhalla ELO Generator v1.0 nvdlove & antireplay");
+            Log("======================================================");
             Log("                    CONFIG");
             Log($"   • Threshold: {MATCH_THRESHOLD * 100}%");
             Log($"   • Window Size: {targetWindowSize.Width}x{targetWindowSize.Height}");
             Log($"   • Discord: {(string.IsNullOrEmpty(settings.DiscordWebhookUrl) ? "DISABLED (press F2)" : "ENABLED")}");
             Log($"   • Auto-Nav: ESC → S → C → C → C (35s delay) ");
-            Log("================================================");
+            Log("======================================================");
 
             if (autoStart)
             {
@@ -1294,15 +1294,15 @@ namespace BrawlhallaAutomation
             frameCount = 0;
             UpdateStatus("MONITORING");
 
-            Log("================================================");
+            Log("======================================================");
             Log(" STARTING 68% FAST MONITORING");
-            Log("================================================");
+            Log("======================================================");
             Log($"   • Threshold: {MATCH_THRESHOLD * 100:F0}%");
             Log($"   • Window Size: {targetWindowSize.Width}x{targetWindowSize.Height}");
             Log($"   • Check Interval: {settings.CheckInterval}ms");
             Log($"   • Cooldown: {settings.CooldownSeconds}s");
             Log($"   • Startup Delay: 35s"); // Hardcoded 35 seconds
-            Log("================================================");
+            Log("======================================================");
 
             if (!string.IsNullOrEmpty(settings.DiscordWebhookUrl))
             {
@@ -1321,7 +1321,7 @@ namespace BrawlhallaAutomation
 
                 LoadTemplates();
 
-                Log("================================================");
+                Log("======================================================");
                 Log(" SCANNING FOR MATCHES...");
 
                 while (running && !this.IsDisposed)
@@ -1356,10 +1356,10 @@ namespace BrawlhallaAutomation
             reconnectTpl = null;
 
             UpdateStatus("STOPPED");
-            Log("================================================");
+            Log("======================================================");
             Log(" MONITORING STOPPED");
             Log($"   • Total Queues: {queueCount}");
-            Log("================================================");
+            Log("======================================================");
 
             if (!string.IsNullOrEmpty(settings.DiscordWebhookUrl))
             {
@@ -1440,12 +1440,12 @@ namespace BrawlhallaAutomation
                                         continue;
                                     }
 
-                                    Log("================================================");
+                                    Log("======================================================");
                                     Log($"🎯🎯🎯 MATCH FOUND!");
                                     Log($"   • Score: {matchScore:F3}");
                                     Log($"   • Threshold: {MATCH_THRESHOLD * 100:F0}%");
                                     Log($"   • Queue #{queueCount + 1}");
-                                    Log("================================================");
+                                    Log("======================================================");
 
                                     System.Media.SystemSounds.Exclamation.Play();
                                     SaveDebugImage(screenshot, "MATCH_FOUND", matchScore);
@@ -1504,9 +1504,9 @@ namespace BrawlhallaAutomation
             {
                 UpdateStatus("PROCESSING MATCH");
 
-                Log("================================================");
+                Log("======================================================");
                 Log("🔄 EXECUTING MATCH SEQUENCE");
-                Log("================================================");
+                Log("======================================================");
                 Log("   • Step 1: Closing Brawlhalla...");
 
                 CloseBrawlhalla();
@@ -1551,9 +1551,9 @@ namespace BrawlhallaAutomation
                     await Task.Delay(1000);
                 }
 
-                Log("================================================");
+                Log("======================================================");
                 Log("✓ SEQUENCE COMPLETE - READY FOR NEXT QUEUE");
-                Log("================================================");
+                Log("======================================================");
 
                 if (!string.IsNullOrEmpty(settings.DiscordWebhookUrl))
                 {
