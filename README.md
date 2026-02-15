@@ -25,21 +25,7 @@ If you don’t install them, the program **will not work** (no magic allowed �
 
 Open **Visual Studio**, then go to:
 
-**Project → Manage NuGet Packages → Install**
-
-Install **all** of the following:
-
-- `Microsoft.Win32.Registry`
-- `OpenCvSharp4`
-- `OpenCvSharp4.Extensions`
-- `OpenCvSharp4.runtime.win`
-- `System.Buffers`
-- `System.Drawing.Common`
-- `System.Memory`
-- `System.Numerics.Vectors`
-- `System.Runtime.CompilerServices.Unsafe`
-- `System.Security.AccessControl`
-- `System.Security.Principal.Windows`
+all required NuGet packages should automatically download
 
 ---
 
@@ -47,7 +33,7 @@ Install **all** of the following:
 
 1. Clone or download the repository  
 2. Open the project in **Visual Studio**
-3. Install all required NuGet packages
+3. all required NuGet packages should automatically download
 4. Build and run the project
 5. Launch **Brawlhalla**
 6. Let the generator do its thing ✨
