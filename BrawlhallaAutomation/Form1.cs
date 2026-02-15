@@ -270,6 +270,24 @@ namespace BrawlhallaAutomation
 
         private const int WM_NCLBUTTONDOWN = 0xA1;
         private const int HT_CAPTION = 0x2;
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // WebhookInputDialog
+            // 
+            this.ClientSize = new System.Drawing.Size(284, 261);
+            this.Name = "WebhookInputDialog";
+            this.Load += new System.EventHandler(this.WebhookInputDialog_Load);
+            this.ResumeLayout(false);
+
+        }
+
+        private void WebhookInputDialog_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 
     public class AppSettings
@@ -671,7 +689,7 @@ namespace BrawlhallaAutomation
             this.KeyPreview = true;
             this.KeyDown += Form1_KeyDown;
 
-            Log("  Brawlhalla ELO Generator v1.0");
+            Log("  Brawlhalla ELO Generator v1.0 nvdlove & antireplay  ");
             Log("======================================================");
             Log("                    CONFIG");
             Log($"   • Threshold: {MATCH_THRESHOLD * 100}%");
