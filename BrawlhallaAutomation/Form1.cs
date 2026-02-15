@@ -34,7 +34,6 @@ namespace BrawlhallaAutomation
 
         private void InitializeUI(string currentUrl)
         {
-            // Window setup
             this.Text = "Set Discord Webhook URL";
             this.Size = new DrawingSize(600, 220);
             this.StartPosition = FormStartPosition.CenterParent;
@@ -42,7 +41,6 @@ namespace BrawlhallaAutomation
             this.BackColor = Color.Black;
             this.TopMost = true;
 
-            // Title bar
             var titleBar = new Panel
             {
                 Height = 30,
@@ -59,14 +57,12 @@ namespace BrawlhallaAutomation
                 AutoSize = true
             };
 
-            // Close button
             var btnClose = CreateTransparentButton("✕", new DrawingPoint(570, 0),
                 (s, e) => { this.DialogResult = DialogResult.Cancel; this.Close(); });
 
             titleBar.Controls.Add(titleLabel);
             titleBar.Controls.Add(btnClose);
 
-            // Main content
             var lblInstruction = new Label
             {
                 Text = "Enter Discord Webhook URL (leave empty to disable):",
@@ -89,7 +85,6 @@ namespace BrawlhallaAutomation
             if (!string.IsNullOrEmpty(currentUrl))
                 txtWebhook.Text = currentUrl;
 
-            // Help text
             var lblHelp = new Label
             {
                 Text = "Get webhook from Discord: Server Settings → Integrations → Webhooks",
@@ -99,7 +94,6 @@ namespace BrawlhallaAutomation
                 AutoSize = true
             };
 
-            // Buttons
             btnTest = new Button
             {
                 Text = "TEST",
@@ -154,7 +148,6 @@ namespace BrawlhallaAutomation
                 this.Close();
             };
 
-            // Add controls
             this.Controls.Add(titleBar);
             this.Controls.Add(lblInstruction);
             this.Controls.Add(txtWebhook);
@@ -163,7 +156,6 @@ namespace BrawlhallaAutomation
             this.Controls.Add(btnSave);
             this.Controls.Add(btnCancel);
 
-            // Make draggable
             titleBar.MouseDown += (s, e) =>
             {
                 if (e.Button == MouseButtons.Left)
@@ -278,11 +270,34 @@ namespace BrawlhallaAutomation
 
         private const int WM_NCLBUTTONDOWN = 0xA1;
         private const int HT_CAPTION = 0x2;
+
+        private void InitializeComponent()
+        {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(WebhookInputDialog));
+            this.SuspendLayout();
+            // 
+            // WebhookInputDialog
+            // 
+            this.BackColor = System.Drawing.Color.Black;
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.ClientSize = new System.Drawing.Size(800, 500);
+            this.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Name = "WebhookInputDialog";
+            this.Load += new System.EventHandler(this.WebhookInputDialog_Load);
+            this.ResumeLayout(false);
+
+        }
+
+        private void WebhookInputDialog_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 
     // ==================== MAIN APPLICATION ====================
 
-    // Configuration class for settings
     public class AppSettings
     {
         public double MatchThreshold { get; set; } = 0.68;
@@ -290,19 +305,17 @@ namespace BrawlhallaAutomation
         public int WindowHeight { get; set; } = 657;
         public int CheckInterval { get; set; } = 600;
         public int CooldownSeconds { get; set; } = 25;
-        public int StartupDelay { get; set; } = 35; // 35-second delay after game launch
+        public int StartupDelay { get; set; } = 35;
         public string DiscordWebhookUrl { get; set; } = "";
     }
 
     public partial class Form1 : Form
     {
-        // ================= UI Components =================
         private TextBox txtLog;
         private Panel titleBar;
         private Button btnClose;
         private Button btnMinimize;
 
-        // ================= State =================
         private bool running = false;
         private int frameCount = 0;
         private bool matchFound = false;
@@ -312,8 +325,8 @@ namespace BrawlhallaAutomation
         private bool isRunningSequence = false;
         private readonly object sequenceLock = new object();
         private bool isPaused = false;
+        private CancellationTokenSource monitoringCts;
 
-        // ================= Configuration =================
         private double MATCH_THRESHOLD = 0.68;
         private readonly string searchingTemplatePath = @"Templates\searching.png";
         private readonly string matchTemplatePath = @"Templates\match.png";
@@ -321,12 +334,10 @@ namespace BrawlhallaAutomation
         private DrawingSize targetWindowSize = new DrawingSize(1254, 657);
         private AppSettings settings = new AppSettings();
 
-        // ================= Template Cache =================
         private Mat searchingTpl = null;
         private Mat matchTpl = null;
         private Mat reconnectTpl = null;
 
-        // ================= Win32 API =================
         [DllImport("user32.dll")]
         private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
@@ -363,18 +374,15 @@ namespace BrawlhallaAutomation
             public int Left, Top, Right, Bottom;
         }
 
-        // Keyboard constants
         private const int KEYEVENTF_KEYDOWN = 0x0000;
         private const int KEYEVENTF_KEYUP = 0x0002;
         private const byte VK_S = 0x53;
         private const byte VK_C = 0x43;
         private const byte VK_ESCAPE = 0x1B;
 
-        // Window dragging
         private const int WM_NCLBUTTONDOWN = 0xA1;
         private const int HT_CAPTION = 0x2;
 
-        // Scrolling
         private const int WM_VSCROLL = 0x0115;
         private const int SB_LINEUP = 0;
         private const int SB_LINEDOWN = 1;
@@ -387,17 +395,13 @@ namespace BrawlhallaAutomation
             if (ValidateSettings())
             {
                 autoStart = true;
-                _ = Task.Run(async () => await StartMonitoringLoop());
+                monitoringCts = new CancellationTokenSource();
+                _ = Task.Run(async () => await StartMonitoringLoop(monitoringCts.Token));
             }
             else
             {
                 Log("❌ Invalid settings detected. Please check configuration.");
             }
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            // Additional initialization
         }
 
         private Button CreateTransparentButton(string text, DrawingPoint location, EventHandler clickHandler)
@@ -440,7 +444,6 @@ namespace BrawlhallaAutomation
             return btn;
         }
 
-        // ================= UI Setup =================
         private void InitializeUI()
         {
             Text = "Brawlhalla ELO Generator v1.0";
@@ -460,10 +463,9 @@ namespace BrawlhallaAutomation
 
             this.TopMost = true;
 
-            // Title bar
             titleBar = new Panel
             {
-                Height = 30,
+                Height = 25,
                 Dock = DockStyle.Top,
                 BackColor = Color.FromArgb(30, 30, 30)
             };
@@ -493,7 +495,6 @@ namespace BrawlhallaAutomation
             titleBar.Controls.Add(btnMinimize);
             titleBar.Controls.Add(btnClose);
 
-            // Log textbox
             txtLog = new TextBox
             {
                 Multiline = true,
@@ -508,7 +509,6 @@ namespace BrawlhallaAutomation
                 WordWrap = true
             };
 
-            // Mouse wheel scrolling
             this.MouseWheel += (s, e) =>
             {
                 DrawingPoint mousePos = txtLog.PointToClient(Cursor.Position);
@@ -532,10 +532,9 @@ namespace BrawlhallaAutomation
 
             txtLog.MouseEnter += (s, e) => txtLog.Focus();
 
-            // Status bar
             var statusBar = new Panel
             {
-                Height = 25,
+                Height = 20,
                 Dock = DockStyle.Bottom,
                 BackColor = Color.FromArgb(30, 30, 30)
             };
@@ -575,7 +574,7 @@ namespace BrawlhallaAutomation
                 Text = DateTime.Now.ToString("HH:mm:ss"),
                 ForeColor = Color.White,
                 Font = new Font("Consolas", 9),
-                Location = new DrawingPoint(700, 3),
+                Location = new DrawingPoint(735, 3),
                 AutoSize = true,
                 Name = "timeLabel"
             };
@@ -585,38 +584,32 @@ namespace BrawlhallaAutomation
             statusBar.Controls.Add(pauseLabel);
             statusBar.Controls.Add(timeLabel);
 
-            // Time update timer
             var timer = new System.Windows.Forms.Timer();
             timer.Interval = 1000;
             timer.Tick += (s, e) => timeLabel.Text = DateTime.Now.ToString("HH:mm:ss");
             timer.Start();
 
-            // Hotkey labels
             var hotkeyLabel = new Label
             {
-                Text = "[F1] Stop/Restart [F2] Webhook URL [F3] Manual Nav [F4] Screenshot [F5] Pause",
+                Text = "[F1] Stop/Restart [F2] Webhook URL [F3] Manual Nav [F4] Pause",
                 ForeColor = Color.Gray,
                 Font = new Font("Consolas", 8),
-                Location = new DrawingPoint(330, 460),
+                Location = new DrawingPoint(425, 465),
                 AutoSize = true
             };
 
-            // Add controls
             this.Controls.Add(txtLog);
             this.Controls.Add(titleBar);
             this.Controls.Add(statusBar);
             this.Controls.Add(hotkeyLabel);
 
-            // Z-order
             titleBar.BringToFront();
             statusBar.BringToFront();
             hotkeyLabel.BringToFront();
 
-            // Hotkeys
             this.KeyPreview = true;
             this.KeyDown += Form1_KeyDown;
 
-            // Initial log
             Log("  Brawlhalla ELO Generator v1.0 nvdlove & antireplay");
             Log("======================================================");
             Log("                    CONFIG");
@@ -632,7 +625,6 @@ namespace BrawlhallaAutomation
             }
         }
 
-        // ================= Settings Management =================
         private void LoadSettings()
         {
             try
@@ -688,7 +680,7 @@ namespace BrawlhallaAutomation
                 sb.AppendLine($"  \"WindowHeight\": {settings.WindowHeight},");
                 sb.AppendLine($"  \"CheckInterval\": {settings.CheckInterval},");
                 sb.AppendLine($"  \"CooldownSeconds\": {settings.CooldownSeconds},");
-                sb.AppendLine($"  \"StartupDelay\": 35,"); // FORCE 35 SECONDS
+                sb.AppendLine($"  \"StartupDelay\": 35,");
                 sb.AppendLine($"  \"DiscordWebhookUrl\": \"{EscapeJsonString(settings.DiscordWebhookUrl)}\"");
                 sb.AppendLine("}");
 
@@ -720,7 +712,6 @@ namespace BrawlhallaAutomation
                 isValid = false;
             }
 
-            // FORCE 35 SECONDS NO MATTER WHAT
             if (settings.StartupDelay != 35)
             {
                 Log($"⚠️  Startup delay changed from {settings.StartupDelay} to 35 seconds");
@@ -806,7 +797,6 @@ namespace BrawlhallaAutomation
             return defaultValue;
         }
 
-        // ================= Hotkey Handler =================
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
@@ -820,7 +810,8 @@ namespace BrawlhallaAutomation
                     else
                     {
                         Log("HOTKEY: Starting monitor...");
-                        _ = Task.Run(async () => await StartMonitoringLoop());
+                        monitoringCts = new CancellationTokenSource();
+                        _ = Task.Run(async () => await StartMonitoringLoop(monitoringCts.Token));
                     }
                     break;
 
@@ -835,11 +826,6 @@ namespace BrawlhallaAutomation
                     break;
 
                 case Keys.F4:
-                    Log("HOTKEY: Capturing debug screenshot...");
-                    CaptureDebugScreenshot();
-                    break;
-
-                case Keys.F5:
                     TogglePause();
                     break;
 
@@ -853,7 +839,6 @@ namespace BrawlhallaAutomation
             }
         }
 
-        // ================= Pause Functionality =================
         private void TogglePause()
         {
             isPaused = !isPaused;
@@ -887,7 +872,6 @@ namespace BrawlhallaAutomation
             }
         }
 
-        // ================= Webhook Configuration =================
         private void SetDiscordWebhook()
         {
             try
@@ -947,7 +931,6 @@ namespace BrawlhallaAutomation
             Log($"   • Discord: {(string.IsNullOrEmpty(settings.DiscordWebhookUrl) ? "DISABLED (press F2)" : "ENABLED")}");
         }
 
-        // ================= Keyboard Navigation =================
         private void PressKey(byte keyCode, int delayBefore = 100, int delayAfter = 200)
         {
             try
@@ -975,7 +958,6 @@ namespace BrawlhallaAutomation
             await NavigateToQueue();
         }
 
-        // ================= FIXED: Reconnect Popup Detection =================
         private async Task<bool> IsReconnectPopupVisible()
         {
             try
@@ -983,8 +965,7 @@ namespace BrawlhallaAutomation
                 IntPtr hwnd = FindWindow(null, "Brawlhalla");
                 if (hwnd == IntPtr.Zero)
                 {
-                    Log("   ⚠️  Brawlhalla window not found for reconnect check");
-                    return false; // Return false if window not found
+                    return false;
                 }
 
                 using (Bitmap screenshot = CaptureWindow(hwnd))
@@ -1023,89 +1004,30 @@ namespace BrawlhallaAutomation
                                         }
                                     }
 
-                                    Log($"   • Reconnect template match score: {bestScore:F3}");
-
-                                    // FIXED: Use higher threshold (0.75) to avoid false positives
-                                    if (bestScore > 0.75) // CHANGED FROM 0.6 TO 0.75
+                                    if (bestScore > 0.75)
                                     {
-                                        string debugFile = $"debug_reconnect_{DateTime.Now:HHmmss}_{bestScore:F3}.png";
-                                        screenshot.Save(debugFile, ImageFormat.Png);
-
-                                        if (bestScore > 0.85)
-                                            Log($"   ✓ Reconnect popup detected (STRONG match: {bestScore:F3})");
-                                        else if (bestScore > 0.75)
-                                            Log($"   ⚠️  Reconnect popup detected (MEDIUM match: {bestScore:F3})");
-
                                         return true;
                                     }
-                                    else
-                                    {
-                                        Log($"   • No popup detected (score too low: {bestScore:F3} < 0.75)");
-                                        return false;
-                                    }
-                                }
-                                else
-                                {
-                                    Log($"   • Template file exists but is empty/corrupted");
-                                    return false;
                                 }
                             }
-                        }
-                        else
-                        {
-                            Log($"   • No reconnect template found at: {reconnectTemplatePath}");
-                            Log($"   • Assuming no reconnect popup (safe to skip ESC)");
-                            return false;
                         }
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                Log($"   ⚠️  Reconnect check error: {ex.Message}");
-                // FIXED: Return FALSE when there's an error, not TRUE
-                // We don't want to press ESC if we can't check properly
-                return false; // CHANGED FROM true TO false
-            }
-        }
-
-        private double MatchTemplateMultipleMethods(Mat source, Mat template)
-        {
-            double bestScore = 0;
-
-            var methods = new (TemplateMatchModes Method, bool InvertScore)[]
-            {
-                (TemplateMatchModes.CCoeffNormed, false),
-                (TemplateMatchModes.CCorrNormed, false),
-                (TemplateMatchModes.SqDiffNormed, true)
-            };
-
-            foreach (var (method, invert) in methods)
-            {
-                using (Mat result = new Mat())
-                {
-                    Cv2.MatchTemplate(source, template, result, method);
-                    Cv2.MinMaxLoc(result, out double minVal, out double maxVal);
-
-                    double score = invert ? 1 - minVal : maxVal;
-                    if (score > bestScore) bestScore = score;
-                }
+                return false;
             }
 
-            return bestScore;
+            return false;
         }
 
-        // ================= FIXED: Navigation Method =================
         private async Task NavigateToQueue()
         {
             Log("   ▷ STARTING AUTO-NAVIGATION");
 
             try
             {
-                // FIXED: Better reconnect popup check with timeout
-                Log("   • Checking for reconnect popup...");
-
-                // Add a small delay before checking to ensure window is ready
                 await Task.Delay(1000);
 
                 bool hasReconnect = await IsReconnectPopupVisible();
@@ -1116,7 +1038,6 @@ namespace BrawlhallaAutomation
                     PressKey(VK_ESCAPE, 1000, 500);
                     await Task.Delay(2000);
 
-                    // Check one more time but don't get stuck
                     bool stillHasReconnect = await IsReconnectPopupVisible();
                     if (stillHasReconnect)
                     {
@@ -1132,7 +1053,6 @@ namespace BrawlhallaAutomation
                 else
                 {
                     Log("   • Step 1: No reconnect popup found, skipping ESC");
-                    // Small delay before continuing to match timing with ESC press scenario
                     await Task.Delay(1000);
                 }
 
@@ -1167,7 +1087,6 @@ namespace BrawlhallaAutomation
             }
         }
 
-        // ================= Discord Methods =================
         private string EscapeJsonString(string input)
         {
             if (string.IsNullOrEmpty(input))
@@ -1184,7 +1103,6 @@ namespace BrawlhallaAutomation
         {
             if (string.IsNullOrEmpty(settings.DiscordWebhookUrl))
             {
-                Log("   ⚠️  Discord not configured (press F2 to set webhook)");
                 return;
             }
 
@@ -1196,21 +1114,11 @@ namespace BrawlhallaAutomation
                     var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                     var response = await client.PostAsync(settings.DiscordWebhookUrl, content);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        Log("   ✓  Discord notification sent");
-                    }
-                    else
-                    {
-                        string responseBody = await response.Content.ReadAsStringAsync();
-                        Log($"   ✗ Discord failed: {response.StatusCode}");
-                    }
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                Log($"   ✗ Discord error: {ex.Message}");
+                // Silently fail - no debug output
             }
         }
 
@@ -1227,7 +1135,6 @@ namespace BrawlhallaAutomation
             await SendDiscordNotification(message);
         }
 
-        // ================= Template Management =================
         private void LoadTemplates()
         {
             try
@@ -1238,10 +1145,6 @@ namespace BrawlhallaAutomation
                 {
                     throw new Exception("Failed to load templates");
                 }
-
-                Log($"   • Templates loaded");
-                Log($"   • Searching: {searchingTpl.Width}x{searchingTpl.Height}");
-                Log($"   • Match: {matchTpl.Width}x{matchTpl.Height}");
             }
             catch (Exception ex)
             {
@@ -1252,7 +1155,6 @@ namespace BrawlhallaAutomation
 
         private void ReloadTemplates()
         {
-            // Dispose existing templates
             searchingTpl?.Dispose();
             matchTpl?.Dispose();
             reconnectTpl?.Dispose();
@@ -1261,7 +1163,6 @@ namespace BrawlhallaAutomation
             matchTpl = null;
             reconnectTpl = null;
 
-            // Load new templates
             if (File.Exists(searchingTemplatePath))
             {
                 searchingTpl = Cv2.ImRead(searchingTemplatePath, ImreadModes.Grayscale);
@@ -1278,8 +1179,7 @@ namespace BrawlhallaAutomation
             }
         }
 
-        // ================= Core Monitoring Loop =================
-        private async Task StartMonitoringLoop()
+        private async Task StartMonitoringLoop(CancellationToken cancellationToken)
         {
             if (running) return;
 
@@ -1301,7 +1201,7 @@ namespace BrawlhallaAutomation
             Log($"   • Window Size: {targetWindowSize.Width}x{targetWindowSize.Height}");
             Log($"   • Check Interval: {settings.CheckInterval}ms");
             Log($"   • Cooldown: {settings.CooldownSeconds}s");
-            Log($"   • Startup Delay: 35s"); // Hardcoded 35 seconds
+            Log($"   • Startup Delay: 35s");
             Log("======================================================");
 
             if (!string.IsNullOrEmpty(settings.DiscordWebhookUrl))
@@ -1321,17 +1221,20 @@ namespace BrawlhallaAutomation
 
                 LoadTemplates();
 
-                Log("======================================================");
                 Log(" SCANNING FOR MATCHES...");
 
-                while (running && !this.IsDisposed)
+                while (running && !this.IsDisposed && !cancellationToken.IsCancellationRequested)
                 {
-                    if (!isPaused && !isRunningSequence) // ADDED: Check for running sequence
+                    if (!isPaused && !isRunningSequence)
                     {
-                        await ProcessFrame();
+                        await ProcessFrame(cancellationToken);
                     }
-                    await Task.Delay(settings.CheckInterval);
+                    await Task.Delay(settings.CheckInterval, cancellationToken);
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                Log(" Monitoring cancelled.");
             }
             catch (Exception ex)
             {
@@ -1369,11 +1272,9 @@ namespace BrawlhallaAutomation
             }
         }
 
-        // ================= Process Frame - FIXED =================
-        private async Task ProcessFrame()
+        private async Task ProcessFrame(CancellationToken cancellationToken)
         {
-            // FIX: STOP PROCESSING IF SEQUENCE IS RUNNING
-            if (isRunningSequence || !running) return;
+            if (isRunningSequence || !running || cancellationToken.IsCancellationRequested) return;
 
             try
             {
@@ -1392,7 +1293,7 @@ namespace BrawlhallaAutomation
                     if (!matchFound)
                     {
                         SetForegroundWindow(hwnd);
-                        await Task.Delay(100);
+                        await Task.Delay(100, cancellationToken);
                     }
                     else
                     {
@@ -1421,13 +1322,15 @@ namespace BrawlhallaAutomation
 
                         foreach (var roi in testROIs)
                         {
+                            if (cancellationToken.IsCancellationRequested) return;
+
                             var clampedRoi = ClampRect(roi, gray.Width, gray.Height);
                             if (clampedRoi.Width <= 10 || clampedRoi.Height <= 10)
                                 continue;
 
                             using (Mat region = new Mat(gray, clampedRoi))
                             {
-                                if (region.Width < searchingTpl.Width || region.Height < searchingTpl.Height)
+                                if (region.Width < matchTpl.Width || region.Height < matchTpl.Height)
                                     continue;
 
                                 double matchScore = MatchTemplate(region, matchTpl);
@@ -1448,14 +1351,12 @@ namespace BrawlhallaAutomation
                                     Log("======================================================");
 
                                     System.Media.SystemSounds.Exclamation.Play();
-                                    SaveDebugImage(screenshot, "MATCH_FOUND", matchScore);
 
                                     matchFound = true;
                                     lastMatchTime = DateTime.Now;
 
                                     _ = Task.Run(async () => await SendMatchFoundNotification(matchScore));
 
-                                    // STOP MONITORING AND START SEQUENCE
                                     running = false;
                                     await FastMatchSequence();
 
@@ -1463,11 +1364,10 @@ namespace BrawlhallaAutomation
                                     break;
                                 }
 
-                                if (matchScore < MATCH_THRESHOLD)
+                                if (matchScore < MATCH_THRESHOLD && frameCount % 10 == 0)
                                 {
                                     double searchScore = MatchTemplate(region, searchingTpl);
-
-                                    if (searchScore >= MATCH_THRESHOLD && frameCount % 10 == 0)
+                                    if (searchScore >= MATCH_THRESHOLD)
                                     {
                                         Log($"   ⌛ Searching... Score: {searchScore:F3}");
                                     }
@@ -1484,6 +1384,10 @@ namespace BrawlhallaAutomation
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 if (frameCount % 50 == 0)
@@ -1491,7 +1395,6 @@ namespace BrawlhallaAutomation
             }
         }
 
-        // ================= FIXED: FAST MATCH SEQUENCE WITH EXACT 35-SECOND DELAY =================
         private async Task FastMatchSequence()
         {
             lock (sequenceLock)
@@ -1515,10 +1418,8 @@ namespace BrawlhallaAutomation
                 Log("   • Step 2: Launching Brawlhalla...");
                 LaunchBrawlhalla();
 
-                // FIXED: EXACT 35-SECOND DELAY - NO INTERFERENCE
                 Log($"   • Step 3: Waiting 35 seconds for game load...");
 
-                // Clean 35-second countdown
                 for (int i = 35; i > 0; i--)
                 {
                     if (i % 5 == 0 || i <= 3)
@@ -1571,14 +1472,17 @@ namespace BrawlhallaAutomation
                 isRunningSequence = false;
                 matchFound = false;
 
-                // AUTO-RESTART MONITORING
                 Log("   • Auto-restarting monitoring...");
                 await Task.Delay(1000);
-                _ = Task.Run(async () => await StartMonitoringLoop());
+
+                if (!this.IsDisposed)
+                {
+                    monitoringCts = new CancellationTokenSource();
+                    _ = Task.Run(async () => await StartMonitoringLoop(monitoringCts.Token));
+                }
             }
         }
 
-        // ================= Window Resize Methods =================
         private void FastResizeWindow(IntPtr hwnd)
         {
             try
@@ -1597,10 +1501,6 @@ namespace BrawlhallaAutomation
                     MoveWindow(hwnd, x, y, targetWindowSize.Width, targetWindowSize.Height, true);
                     Log($"   • Window resized: {currentWidth}x{currentHeight} → {targetWindowSize.Width}x{targetWindowSize.Height}");
                 }
-                else
-                {
-                    Log($"   • Window already correct: {currentWidth}x{currentHeight}");
-                }
             }
             catch (Exception ex)
             {
@@ -1608,7 +1508,6 @@ namespace BrawlhallaAutomation
             }
         }
 
-        // ================= Helper Methods =================
         private void CloseBrawlhalla()
         {
             try
@@ -1713,45 +1612,6 @@ namespace BrawlhallaAutomation
             return new OpenCvSharp.Rect(x, y, w, h);
         }
 
-        // ================= Debug Functions =================
-        private void CaptureDebugScreenshot()
-        {
-            try
-            {
-                IntPtr hwnd = FindWindow(null, "Brawlhalla");
-                if (hwnd == IntPtr.Zero)
-                {
-                    Log("   ⚠️  Brawlhalla not found");
-                    return;
-                }
-
-                using (Bitmap screenshot = CaptureWindow(hwnd))
-                {
-                    if (screenshot != null)
-                    {
-                        string filename = $"Debug_{DateTime.Now:HHmmss}.png";
-                        screenshot.Save(filename, ImageFormat.Png);
-                        Log($"   📸 Screenshot saved: {filename}");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Log($"   ✗ Screenshot error: {ex.Message}");
-            }
-        }
-
-        private void SaveDebugImage(Bitmap image, string state, double score)
-        {
-            try
-            {
-                string filename = $"Match_{state}_{DateTime.Now:HHmmss}_{score:F2}.png";
-                image.Save(filename, ImageFormat.Png);
-            }
-            catch { }
-        }
-
-        // ================= UI Update Methods =================
         private void UpdateStatus(string status)
         {
             if (this.IsDisposed || this.Disposing)
@@ -1798,7 +1658,6 @@ namespace BrawlhallaAutomation
             }
         }
 
-        // ================= Logging =================
         private void Log(string message)
         {
             if (this.IsDisposed || txtLog.IsDisposed || txtLog.Disposing)
@@ -1828,9 +1687,11 @@ namespace BrawlhallaAutomation
             }
         }
 
-        // ================= Cleanup =================
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
+            monitoringCts?.Cancel();
+            monitoringCts?.Dispose();
+
             SaveSettings();
 
             searchingTpl?.Dispose();
