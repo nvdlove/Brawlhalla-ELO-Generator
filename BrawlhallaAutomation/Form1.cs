@@ -1,23 +1,23 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
-using DrawingPoint = System.Drawing.Point;
-using DrawingSize = System.Drawing.Size;
+using Point = System.Drawing.Point;
+using Size = System.Drawing.Size;
+using Rect = OpenCvSharp.Rect;
 
 namespace BrawlhallaAutomation
 {
-    // ==================== WEBHOOK INPUT DIALOG ====================
     public class WebhookInputDialog : Form
     {
         private TextBox txtWebhook;
@@ -35,7 +35,7 @@ namespace BrawlhallaAutomation
         private void InitializeUI(string currentUrl)
         {
             this.Text = "Set Discord Webhook URL";
-            this.Size = new DrawingSize(600, 220);
+            this.Size = new Size(600, 220);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.None;
             this.BackColor = Color.Black;
@@ -53,11 +53,11 @@ namespace BrawlhallaAutomation
                 Text = "Discord Webhook Configuration",
                 ForeColor = Color.White,
                 Font = new Font("Consolas", 9),
-                Location = new DrawingPoint(10, 5),
+                Location = new Point(10, 5),
                 AutoSize = true
             };
 
-            var btnClose = CreateTransparentButton("✕", new DrawingPoint(570, 0),
+            var btnClose = CreateTransparentButton("✕", new Point(570, 0),
                 (s, e) => { this.DialogResult = DialogResult.Cancel; this.Close(); });
 
             titleBar.Controls.Add(titleLabel);
@@ -68,14 +68,14 @@ namespace BrawlhallaAutomation
                 Text = "Enter Discord Webhook URL (leave empty to disable):",
                 ForeColor = Color.Cyan,
                 Font = new Font("Consolas", 9),
-                Location = new DrawingPoint(20, 40),
+                Location = new Point(20, 40),
                 AutoSize = true
             };
 
             txtWebhook = new TextBox
             {
-                Location = new DrawingPoint(20, 70),
-                Size = new DrawingSize(540, 25),
+                Location = new Point(20, 70),
+                Size = new Size(540, 25),
                 BackColor = Color.FromArgb(40, 40, 40),
                 ForeColor = Color.White,
                 BorderStyle = BorderStyle.FixedSingle,
@@ -90,15 +90,15 @@ namespace BrawlhallaAutomation
                 Text = "Get webhook from Discord: Server Settings → Integrations → Webhooks",
                 ForeColor = Color.Gray,
                 Font = new Font("Consolas", 7),
-                Location = new DrawingPoint(20, 100),
+                Location = new Point(20, 100),
                 AutoSize = true
             };
 
             btnTest = new Button
             {
                 Text = "TEST",
-                Location = new DrawingPoint(300, 140),
-                Size = new DrawingSize(80, 30),
+                Location = new Point(300, 140),
+                Size = new Size(80, 30),
                 BackColor = Color.FromArgb(60, 60, 120),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -112,8 +112,8 @@ namespace BrawlhallaAutomation
             btnSave = new Button
             {
                 Text = "SAVE",
-                Location = new DrawingPoint(400, 140),
-                Size = new DrawingSize(80, 30),
+                Location = new Point(400, 140),
+                Size = new Size(80, 30),
                 BackColor = Color.FromArgb(0, 120, 0),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -132,8 +132,8 @@ namespace BrawlhallaAutomation
             btnCancel = new Button
             {
                 Text = "CANCEL",
-                Location = new DrawingPoint(490, 140),
-                Size = new DrawingSize(80, 30),
+                Location = new Point(490, 140),
+                Size = new Size(80, 30),
                 BackColor = Color.FromArgb(120, 0, 0),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -166,7 +166,7 @@ namespace BrawlhallaAutomation
             };
         }
 
-        private Button CreateTransparentButton(string text, DrawingPoint location, EventHandler clickHandler)
+        private Button CreateTransparentButton(string text, Point location, EventHandler clickHandler)
         {
             var btn = new Button
             {
@@ -174,7 +174,7 @@ namespace BrawlhallaAutomation
                 FlatStyle = FlatStyle.Flat,
                 ForeColor = Color.FromArgb(180, 180, 180),
                 BackColor = Color.Transparent,
-                Size = new DrawingSize(30, 30),
+                Size = new Size(30, 30),
                 Location = location,
                 Font = new Font("Segoe UI", 11, FontStyle.Regular),
                 Cursor = Cursors.Hand,
@@ -270,33 +270,7 @@ namespace BrawlhallaAutomation
 
         private const int WM_NCLBUTTONDOWN = 0xA1;
         private const int HT_CAPTION = 0x2;
-
-        private void InitializeComponent()
-        {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(WebhookInputDialog));
-            this.SuspendLayout();
-            // 
-            // WebhookInputDialog
-            // 
-            this.BackColor = System.Drawing.Color.Black;
-            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.ClientSize = new System.Drawing.Size(800, 500);
-            this.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "WebhookInputDialog";
-            this.Load += new System.EventHandler(this.WebhookInputDialog_Load);
-            this.ResumeLayout(false);
-
-        }
-
-        private void WebhookInputDialog_Load(object sender, EventArgs e)
-        {
-
-        }
     }
-
-    // ==================== MAIN APPLICATION ====================
 
     public class AppSettings
     {
@@ -331,8 +305,9 @@ namespace BrawlhallaAutomation
         private readonly string searchingTemplatePath = @"Templates\searching.png";
         private readonly string matchTemplatePath = @"Templates\match.png";
         private readonly string reconnectTemplatePath = @"Templates\reconnect_popup.png";
-        private DrawingSize targetWindowSize = new DrawingSize(1254, 657);
+        private Size targetWindowSize = new Size(1254, 657);
         private AppSettings settings = new AppSettings();
+        private EnterpriseLicenseManager licenseManager;
 
         private Mat searchingTpl = null;
         private Mat matchTpl = null;
@@ -382,14 +357,22 @@ namespace BrawlhallaAutomation
 
         private const int WM_NCLBUTTONDOWN = 0xA1;
         private const int HT_CAPTION = 0x2;
-
         private const int WM_VSCROLL = 0x0115;
         private const int SB_LINEUP = 0;
         private const int SB_LINEDOWN = 1;
 
         public Form1()
         {
+            licenseManager = new EnterpriseLicenseManager();
+
+            if (!CheckLicense())
+            {
+                Environment.Exit(0);
+                return;
+            }
+
             InitializeUI();
+            EnsureTemplateDirectory();
             LoadSettings();
 
             if (ValidateSettings())
@@ -404,7 +387,84 @@ namespace BrawlhallaAutomation
             }
         }
 
-        private Button CreateTransparentButton(string text, DrawingPoint location, EventHandler clickHandler)
+        private bool CheckLicense()
+        {
+            try
+            {
+                if (licenseManager.IsLicenseValid)
+                {
+                    return true;
+                }
+
+                int attempts = 0;
+                while (attempts < 3)
+                {
+                    using (var licenseDialog = new EnterpriseKeyDialog(licenseManager, 3 - attempts))
+                    {
+                        var result = licenseDialog.ShowDialog();
+
+                        if (result == DialogResult.OK && licenseDialog.IsLicenseValid)
+                        {
+                            Log("✓ License validated successfully");
+                            return true;
+                        }
+
+                        attempts++;
+
+                        if (attempts < 3)
+                        {
+                            if (MessageBox.Show($"License validation failed. {3 - attempts} attempts remaining.\n\nTry again?",
+                                "License Error", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                MessageBox.Show("License validation failed. Application will exit.",
+                    "License Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"License error: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+        }
+
+        private void EnsureTemplateDirectory()
+        {
+            try
+            {
+                if (!Directory.Exists("Templates"))
+                {
+                    Directory.CreateDirectory("Templates");
+                    Log("📁 Created Templates folder");
+                    Log("   Please add template images:");
+                    Log("   - Templates/searching.png");
+                    Log("   - Templates/match.png");
+                    Log("   - Templates/reconnect_popup.png");
+                }
+
+                bool hasSearching = File.Exists(searchingTemplatePath);
+                bool hasMatch = File.Exists(matchTemplatePath);
+
+                if (!hasSearching || !hasMatch)
+                {
+                    Log("⚠️  WARNING: Template images missing!");
+                    if (!hasSearching) Log($"   Missing: {searchingTemplatePath}");
+                    if (!hasMatch) Log($"   Missing: {matchTemplatePath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"⚠️  Template check error: {ex.Message}");
+            }
+        }
+
+        private Button CreateTransparentButton(string text, Point location, EventHandler clickHandler)
         {
             var btn = new Button
             {
@@ -412,7 +472,7 @@ namespace BrawlhallaAutomation
                 FlatStyle = FlatStyle.Flat,
                 ForeColor = Color.FromArgb(180, 180, 180),
                 BackColor = Color.Transparent,
-                Size = new DrawingSize(30, 30),
+                Size = new Size(30, 30),
                 Location = location,
                 Font = new Font("Segoe UI", 11, FontStyle.Regular),
                 Cursor = Cursors.Hand,
@@ -447,18 +507,19 @@ namespace BrawlhallaAutomation
         private void InitializeUI()
         {
             Text = "Brawlhalla ELO Generator v1.0";
-            this.Size = new DrawingSize(800, 500);
+            this.Size = new Size(800, 500);
             StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.None;
             this.BackColor = Color.Black;
 
             try
             {
-                this.Icon = new Icon("icon.ico");
+                if (File.Exists("icon.ico"))
+                    this.Icon = new Icon("icon.ico");
             }
             catch
             {
-                this.Icon = SystemIcons.Application;
+                // Use default icon
             }
 
             this.TopMost = true;
@@ -475,12 +536,12 @@ namespace BrawlhallaAutomation
                 Text = "Brawlhalla ELO Generator v1.0",
                 ForeColor = Color.White,
                 Font = new Font("Consolas", 9),
-                Location = new DrawingPoint(10, 5),
+                Location = new Point(10, 5),
                 AutoSize = true
             };
 
-            btnClose = CreateTransparentButton("✕", new DrawingPoint(770, 0), (s, e) => Application.Exit());
-            btnMinimize = CreateTransparentButton("─", new DrawingPoint(740, 0), (s, e) => this.WindowState = FormWindowState.Minimized);
+            btnClose = CreateTransparentButton("✕", new Point(770, 0), (s, e) => Application.Exit());
+            btnMinimize = CreateTransparentButton("─", new Point(740, 0), (s, e) => this.WindowState = FormWindowState.Minimized);
 
             titleBar.MouseDown += (s, e) =>
             {
@@ -498,8 +559,8 @@ namespace BrawlhallaAutomation
             txtLog = new TextBox
             {
                 Multiline = true,
-                Location = new DrawingPoint(0, 30),
-                Size = new DrawingSize(760, 445),
+                Location = new Point(0, 30),
+                Size = new Size(760, 445),
                 BackColor = Color.Black,
                 ForeColor = Color.Lime,
                 Font = new Font("Consolas", 10),
@@ -511,7 +572,7 @@ namespace BrawlhallaAutomation
 
             this.MouseWheel += (s, e) =>
             {
-                DrawingPoint mousePos = txtLog.PointToClient(Cursor.Position);
+                Point mousePos = txtLog.PointToClient(Cursor.Position);
                 if (txtLog.ClientRectangle.Contains(mousePos))
                 {
                     int lines = Math.Abs(e.Delta) / 120 * 3;
@@ -544,7 +605,7 @@ namespace BrawlhallaAutomation
                 Text = "STATUS: INITIALIZING...",
                 ForeColor = Color.Cyan,
                 Font = new Font("Consolas", 9),
-                Location = new DrawingPoint(10, 3),
+                Location = new Point(10, 3),
                 AutoSize = true,
                 Name = "statusLabel"
             };
@@ -554,7 +615,7 @@ namespace BrawlhallaAutomation
                 Text = "QUEUES: 0",
                 ForeColor = Color.Yellow,
                 Font = new Font("Consolas", 9),
-                Location = new DrawingPoint(200, 3),
+                Location = new Point(200, 3),
                 AutoSize = true,
                 Name = "queueLabel"
             };
@@ -564,7 +625,7 @@ namespace BrawlhallaAutomation
                 Text = "PAUSED: NO",
                 ForeColor = Color.Orange,
                 Font = new Font("Consolas", 9),
-                Location = new DrawingPoint(350, 3),
+                Location = new Point(350, 3),
                 AutoSize = true,
                 Name = "pauseLabel"
             };
@@ -574,7 +635,7 @@ namespace BrawlhallaAutomation
                 Text = DateTime.Now.ToString("HH:mm:ss"),
                 ForeColor = Color.White,
                 Font = new Font("Consolas", 9),
-                Location = new DrawingPoint(735, 3),
+                Location = new Point(735, 3),
                 AutoSize = true,
                 Name = "timeLabel"
             };
@@ -594,7 +655,7 @@ namespace BrawlhallaAutomation
                 Text = "[F1] Stop/Restart [F2] Webhook URL [F3] Manual Nav [F4] Pause",
                 ForeColor = Color.Gray,
                 Font = new Font("Consolas", 8),
-                Location = new DrawingPoint(425, 465),
+                Location = new Point(425, 465),
                 AutoSize = true
             };
 
@@ -610,7 +671,7 @@ namespace BrawlhallaAutomation
             this.KeyPreview = true;
             this.KeyDown += Form1_KeyDown;
 
-            Log("  Brawlhalla ELO Generator v1.0 nvdlove & antireplay");
+            Log("  Brawlhalla ELO Generator v1.0");
             Log("======================================================");
             Log("                    CONFIG");
             Log($"   • Threshold: {MATCH_THRESHOLD * 100}%");
@@ -632,27 +693,14 @@ namespace BrawlhallaAutomation
                 if (File.Exists("settings.json"))
                 {
                     var json = File.ReadAllText("settings.json");
-
-                    double mt = ParseDoubleFromJson(json, "MatchThreshold", settings.MatchThreshold);
-                    int ww = ParseIntFromJson(json, "WindowWidth", settings.WindowWidth);
-                    int wh = ParseIntFromJson(json, "WindowHeight", settings.WindowHeight);
-                    int ci = ParseIntFromJson(json, "CheckInterval", settings.CheckInterval);
-                    int cs = ParseIntFromJson(json, "CooldownSeconds", settings.CooldownSeconds);
-                    int sd = ParseIntFromJson(json, "StartupDelay", settings.StartupDelay);
-                    string webhook = ParseStringFromJson(json, "DiscordWebhookUrl", settings.DiscordWebhookUrl);
-
-                    settings.MatchThreshold = mt;
-                    settings.WindowWidth = ww;
-                    settings.WindowHeight = wh;
-                    settings.CheckInterval = ci;
-                    settings.CooldownSeconds = cs;
-                    settings.StartupDelay = sd;
-                    settings.DiscordWebhookUrl = webhook;
-
-                    MATCH_THRESHOLD = settings.MatchThreshold;
-                    targetWindowSize = new DrawingSize(settings.WindowWidth, settings.WindowHeight);
-
-                    Log($" Settings loaded: {MATCH_THRESHOLD * 100}% threshold");
+                    var loadedSettings = JsonSerializer.Deserialize<AppSettings>(json);
+                    if (loadedSettings != null)
+                    {
+                        settings = loadedSettings;
+                        MATCH_THRESHOLD = settings.MatchThreshold;
+                        targetWindowSize = new Size(settings.WindowWidth, settings.WindowHeight);
+                        Log($" Settings loaded: {MATCH_THRESHOLD * 100}% threshold");
+                    }
                 }
                 else
                 {
@@ -673,18 +721,9 @@ namespace BrawlhallaAutomation
                 settings.WindowWidth = targetWindowSize.Width;
                 settings.WindowHeight = targetWindowSize.Height;
 
-                var sb = new StringBuilder();
-                sb.AppendLine("{");
-                sb.AppendLine($"  \"MatchThreshold\": {settings.MatchThreshold.ToString(System.Globalization.CultureInfo.InvariantCulture)},");
-                sb.AppendLine($"  \"WindowWidth\": {settings.WindowWidth},");
-                sb.AppendLine($"  \"WindowHeight\": {settings.WindowHeight},");
-                sb.AppendLine($"  \"CheckInterval\": {settings.CheckInterval},");
-                sb.AppendLine($"  \"CooldownSeconds\": {settings.CooldownSeconds},");
-                sb.AppendLine($"  \"StartupDelay\": 35,");
-                sb.AppendLine($"  \"DiscordWebhookUrl\": \"{EscapeJsonString(settings.DiscordWebhookUrl)}\"");
-                sb.AppendLine("}");
-
-                File.WriteAllText("settings.json", sb.ToString(), Encoding.UTF8);
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                string json = JsonSerializer.Serialize(settings, options);
+                File.WriteAllText("settings.json", json, Encoding.UTF8);
                 Log("   ✓ Settings saved");
             }
             catch (Exception ex)
@@ -726,77 +765,6 @@ namespace BrawlhallaAutomation
             return isValid;
         }
 
-        private double ParseDoubleFromJson(string json, string key, double defaultValue)
-        {
-            try
-            {
-                var idx = json.IndexOf($"\"{key}\"", StringComparison.OrdinalIgnoreCase);
-                if (idx >= 0)
-                {
-                    var colon = json.IndexOf(':', idx);
-                    if (colon >= 0)
-                    {
-                        var end = json.IndexOfAny(new[] { ',', '\n', '\r', '}' }, colon + 1);
-                        if (end < 0) end = json.Length;
-                        var token = json.Substring(colon + 1, end - colon - 1).Trim().Trim('"');
-                        if (double.TryParse(token, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double v))
-                            return v;
-                    }
-                }
-            }
-            catch { }
-            return defaultValue;
-        }
-
-        private int ParseIntFromJson(string json, string key, int defaultValue)
-        {
-            try
-            {
-                var d = ParseDoubleFromJson(json, key, defaultValue);
-                return (int)d;
-            }
-            catch { }
-            return defaultValue;
-        }
-
-        private string ParseStringFromJson(string json, string key, string defaultValue)
-        {
-            try
-            {
-                var idx = json.IndexOf($"\"{key}\"", StringComparison.OrdinalIgnoreCase);
-                if (idx >= 0)
-                {
-                    var colon = json.IndexOf(':', idx);
-                    if (colon >= 0)
-                    {
-                        var start = json.IndexOf('"', colon + 1);
-                        if (start >= 0)
-                        {
-                            int end = start + 1;
-                            while (end < json.Length)
-                            {
-                                if (json[end] == '"' && (end == 0 || json[end - 1] != '\\'))
-                                    break;
-                                end++;
-                            }
-
-                            if (end > start && end < json.Length)
-                            {
-                                var value = json.Substring(start + 1, end - start - 1);
-                                return value.Replace("\\\"", "\"")
-                                            .Replace("\\\\", "\\")
-                                            .Replace("\\n", "\n")
-                                            .Replace("\\r", "\r")
-                                            .Replace("\\t", "\t");
-                            }
-                        }
-                    }
-                }
-            }
-            catch { }
-            return defaultValue;
-        }
-
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
@@ -805,6 +773,7 @@ namespace BrawlhallaAutomation
                     if (running)
                     {
                         Log("HOTKEY: Stopping monitor...");
+                        monitoringCts?.Cancel();
                         StopMonitoringLoop();
                     }
                     else
@@ -978,7 +947,7 @@ namespace BrawlhallaAutomation
                     {
                         Cv2.CvtColor(frame, gray, ColorConversionCodes.BGR2GRAY);
 
-                        if (File.Exists(reconnectTemplatePath))
+                        if (reconnectTpl != null && !reconnectTpl.Empty() && File.Exists(reconnectTemplatePath))
                         {
                             using (Mat template = Cv2.ImRead(reconnectTemplatePath, ImreadModes.Grayscale))
                             {
@@ -1118,7 +1087,7 @@ namespace BrawlhallaAutomation
             }
             catch
             {
-                // Silently fail - no debug output
+                // Silently fail
             }
         }
 
@@ -1141,41 +1110,47 @@ namespace BrawlhallaAutomation
             {
                 ReloadTemplates();
 
-                if (searchingTpl?.Empty() != false || matchTpl?.Empty() != false)
+                if (searchingTpl == null || searchingTpl.Empty() || matchTpl == null || matchTpl.Empty())
                 {
-                    throw new Exception("Failed to load templates");
+                    Log("⚠️  Templates not loaded - will use fallback detection");
                 }
             }
             catch (Exception ex)
             {
-                Log($"❌ Template error: {ex.Message}");
-                throw;
+                Log($"⚠️  Template error: {ex.Message}");
             }
         }
 
         private void ReloadTemplates()
         {
-            searchingTpl?.Dispose();
-            matchTpl?.Dispose();
-            reconnectTpl?.Dispose();
-
-            searchingTpl = null;
-            matchTpl = null;
-            reconnectTpl = null;
-
-            if (File.Exists(searchingTemplatePath))
+            try
             {
-                searchingTpl = Cv2.ImRead(searchingTemplatePath, ImreadModes.Grayscale);
+                searchingTpl?.Dispose();
+                matchTpl?.Dispose();
+                reconnectTpl?.Dispose();
+
+                searchingTpl = null;
+                matchTpl = null;
+                reconnectTpl = null;
+
+                if (File.Exists(searchingTemplatePath))
+                {
+                    searchingTpl = Cv2.ImRead(searchingTemplatePath, ImreadModes.Grayscale);
+                }
+
+                if (File.Exists(matchTemplatePath))
+                {
+                    matchTpl = Cv2.ImRead(matchTemplatePath, ImreadModes.Grayscale);
+                }
+
+                if (File.Exists(reconnectTemplatePath))
+                {
+                    reconnectTpl = Cv2.ImRead(reconnectTemplatePath, ImreadModes.Grayscale);
+                }
             }
-
-            if (File.Exists(matchTemplatePath))
+            catch (Exception ex)
             {
-                matchTpl = Cv2.ImRead(matchTemplatePath, ImreadModes.Grayscale);
-            }
-
-            if (File.Exists(reconnectTemplatePath))
-            {
-                reconnectTpl = Cv2.ImRead(reconnectTemplatePath, ImreadModes.Grayscale);
+                Log($"⚠️  Reload templates error: {ex.Message}");
             }
         }
 
@@ -1183,25 +1158,18 @@ namespace BrawlhallaAutomation
         {
             if (running) return;
 
-            if (!File.Exists(searchingTemplatePath) || !File.Exists(matchTemplatePath))
-            {
-                Log("❌ ERROR: Missing templates in Templates folder!");
-                return;
-            }
-
             running = true;
             matchFound = false;
             frameCount = 0;
             UpdateStatus("MONITORING");
 
             Log("======================================================");
-            Log(" STARTING 68% FAST MONITORING");
+            Log(" STARTING MONITORING");
             Log("======================================================");
             Log($"   • Threshold: {MATCH_THRESHOLD * 100:F0}%");
             Log($"   • Window Size: {targetWindowSize.Width}x{targetWindowSize.Height}");
             Log($"   • Check Interval: {settings.CheckInterval}ms");
             Log($"   • Cooldown: {settings.CooldownSeconds}s");
-            Log($"   • Startup Delay: 35s");
             Log("======================================================");
 
             if (!string.IsNullOrEmpty(settings.DiscordWebhookUrl))
@@ -1248,6 +1216,8 @@ namespace BrawlhallaAutomation
 
         private void StopMonitoringLoop()
         {
+            if (!running) return;
+
             running = false;
             matchFound = false;
 
@@ -1311,11 +1281,24 @@ namespace BrawlhallaAutomation
                     {
                         Cv2.CvtColor(frame, gray, ColorConversionCodes.BGR2GRAY);
 
-                        OpenCvSharp.Rect[] testROIs = new[]
+                        if (matchTpl == null || matchTpl.Empty() || searchingTpl == null || searchingTpl.Empty())
                         {
-                            new OpenCvSharp.Rect(50, 40, 400, 100),
-                            new OpenCvSharp.Rect(gray.Width/2 - 200, 40, 400, 100),
-                            new OpenCvSharp.Rect(0, 30, gray.Width, 120)
+                            if (frameCount % 30 == 0)
+                                Log("   ⚠️ Templates not loaded - attempting reload");
+                            ReloadTemplates();
+
+                            if (matchTpl == null || matchTpl.Empty())
+                            {
+                                await Task.Delay(1000, cancellationToken);
+                                return;
+                            }
+                        }
+
+                        Rect[] testROIs = new[]
+                        {
+                            new Rect(50, 40, 400, 100),
+                            new Rect(gray.Width/2 - 200, 40, 400, 100),
+                            new Rect(0, 30, gray.Width, 120)
                         };
 
                         bool foundMatch = false;
@@ -1393,6 +1376,38 @@ namespace BrawlhallaAutomation
                 if (frameCount % 50 == 0)
                     Log($"   ⚠️  Error: {ex.Message}");
             }
+        }
+
+        private double MatchTemplate(Mat src, Mat template)
+        {
+            if (src == null || template == null || src.Empty() || template.Empty())
+                return 0;
+
+            if (src.Width < template.Width || src.Height < template.Height)
+                return 0;
+
+            try
+            {
+                using (Mat result = new Mat())
+                {
+                    Cv2.MatchTemplate(src, template, result, TemplateMatchModes.CCoeffNormed);
+                    Cv2.MinMaxLoc(result, out _, out double maxVal);
+                    return maxVal;
+                }
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        private Rect ClampRect(Rect r, int maxWidth, int maxHeight)
+        {
+            int x = Math.Max(0, r.X);
+            int y = Math.Max(0, r.Y);
+            int w = Math.Min(r.Width, maxWidth - x);
+            int h = Math.Min(r.Height, maxHeight - y);
+            return new Rect(x, y, w, h);
         }
 
         private async Task FastMatchSequence()
@@ -1590,28 +1605,6 @@ namespace BrawlhallaAutomation
             }
         }
 
-        private double MatchTemplate(Mat src, Mat template)
-        {
-            if (src.Width < template.Width || src.Height < template.Height)
-                return 0;
-
-            using (Mat result = new Mat())
-            {
-                Cv2.MatchTemplate(src, template, result, TemplateMatchModes.CCoeffNormed);
-                Cv2.MinMaxLoc(result, out _, out double maxVal);
-                return maxVal;
-            }
-        }
-
-        private OpenCvSharp.Rect ClampRect(OpenCvSharp.Rect r, int maxWidth, int maxHeight)
-        {
-            int x = Math.Max(0, r.X);
-            int y = Math.Max(0, r.Y);
-            int w = Math.Min(r.Width, maxWidth - x);
-            int h = Math.Min(r.Height, maxHeight - y);
-            return new OpenCvSharp.Rect(x, y, w, h);
-        }
-
         private void UpdateStatus(string status)
         {
             if (this.IsDisposed || this.Disposing)
@@ -1660,30 +1653,44 @@ namespace BrawlhallaAutomation
 
         private void Log(string message)
         {
-            if (this.IsDisposed || txtLog.IsDisposed || txtLog.Disposing)
+            if (this.IsDisposed || txtLog == null || txtLog.IsDisposed)
                 return;
 
             if (txtLog.InvokeRequired)
             {
-                if (!this.IsDisposed && !this.Disposing && !txtLog.IsDisposed && !txtLog.Disposing)
+                if (!this.IsDisposed && !this.Disposing && txtLog != null && !txtLog.IsDisposed)
                 {
-                    txtLog.Invoke(new Action(() => Log(message)));
+                    try
+                    {
+                        txtLog.Invoke(new Action(() => Log(message)));
+                    }
+                    catch
+                    {
+                        // Ignore invocation errors during shutdown
+                    }
                 }
                 return;
             }
 
-            txtLog.AppendText($"{message}\r\n");
-            txtLog.SelectionStart = txtLog.Text.Length;
-            txtLog.ScrollToCaret();
-
-            if (txtLog.Lines.Length > 200)
+            try
             {
-                var lines = txtLog.Lines;
-                var newLines = new string[100];
-                Array.Copy(lines, lines.Length - 100, newLines, 0, 100);
-                txtLog.Lines = newLines;
+                txtLog.AppendText($"{message}\r\n");
                 txtLog.SelectionStart = txtLog.Text.Length;
                 txtLog.ScrollToCaret();
+
+                if (txtLog.Lines.Length > 200)
+                {
+                    var lines = txtLog.Lines;
+                    var newLines = new string[100];
+                    Array.Copy(lines, lines.Length - 100, newLines, 0, 100);
+                    txtLog.Lines = newLines;
+                    txtLog.SelectionStart = txtLog.Text.Length;
+                    txtLog.ScrollToCaret();
+                }
+            }
+            catch
+            {
+                // Ignore logging errors during shutdown
             }
         }
 
