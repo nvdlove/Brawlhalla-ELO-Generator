@@ -16,8 +16,11 @@
 
 ## 🚀 Getting Started
 
-Before running the project, you **must** install the required NuGet packages.  
-If you don’t install them, the program **will not work** (no magic allowed 😛).
+Windows OS
+
+Brawlhalla installed and running
+
+Visual Studio 2026 (recommended)
 
 ---
 
@@ -25,7 +28,7 @@ If you don’t install them, the program **will not work** (no magic allowed �
 
 Open **Visual Studio**, then go to:
 
-all required NuGet packages should automatically download
+All required NuGet packages should download automatically when you open and build the project.
 
 ---
 
@@ -57,8 +60,7 @@ all required NuGet packages should automatically download
 | F1 | Stop / Restart |
 | F2 | Toggle Discord Webhook |
 | F3 | Manual Navigation |
-| F4 | Screenshot |
-| F5 | Pause |
+| F4 | Pause |
 
 ---
 
