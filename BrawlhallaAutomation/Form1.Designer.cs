@@ -1,4 +1,4 @@
-namespace BrawlhallaAutomation
+﻿namespace BrawlhallaAutomation
 {
     partial class Form1
     {
