@@ -5,6 +5,6 @@
     "CheckInterval": 600,
     "CooldownSeconds": 25,
     "StartupDelay": 30,
-    "DiscordWebhookUrl": ""
+    "DiscordWebhookUrl": "https://discord.com/api/webhooks"
 
 }
