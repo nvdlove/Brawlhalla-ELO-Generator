@@ -1,5 +1,5 @@
 # 🏆 Brawlhalla ELO Generator v1.0
-
+> This does not work, Brawlhalla patch, this elo glitch, this is just a relic of the past, made it public now
 > A fast console-based tool that monitors **Brawlhalla** gameplay and helps you *break the rank* while queueing 🔥
 
 ---
